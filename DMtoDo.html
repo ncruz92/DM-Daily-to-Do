@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weekly Interactive To-Do List</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2, h3 {
+      color: #333;
+    }
+    .day-section {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .person-section {
+      margin-top: 15px;
+      padding: 10px;
+      background: #eef1f5;
+      border-radius: 6px;
+    }
+    .task-item {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+    .task-item input[type="checkbox"] {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Weekly Interactive To-Do List</h1>
+  <div id="todo-container"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBl5AYx5-2lZZCQvxgBZxsX3MV8Dw4xTV0",
+      authDomain: "dm-daily-to-do.firebaseapp.com",
+      databaseURL: "https://dm-daily-to-do-default-rtdb.firebaseio.com",
+      projectId: "dm-daily-to-do",
+      storageBucket: "dm-daily-to-do.firebasestorage.app",
+      messagingSenderId: "294958086232",
+      appId: "1:294958086232:web:b1cb16537eeadb860fb22d",
+      measurementId: "G-FK71MB298X"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const people = ["Sean", "Nick", "Torri"];
+
+    const tasks = {
+      Sunday: ["Regional Sunday Tip Off Call 9:15","Post in GroupMe by 9:30","Clean up Auto Punches (Due by 2:00)","Review Camera by 9:35","Call Downs at 10:00, 12:30, 2:30, 4:30"],
+      Monday: ["Required in store by 9:00","DM Connect Call 8:30","GroupMe Posts by 9:30","Check RQ for any Open PO","Check X Inventory","Call Downs at 12:00, 2:00, 4:30, 6:30","RSM Huddle Call 9:30","Review workable","Review Camera by 9:35","Review Head Count Tracker","Clean up Auto Punches (Due by 10:00)","Review Previous Week’s Hours","Send Weekly Schedule (Due by 9:30)"],
+      Tuesday: ["Required in store by 9:30","DM Connect Call 8:30","BluFox Leadership Call 9:00","GroupMe Posts by 9:30","Call Downs at 10:00, 12:00, 2:00, 4:30, 6:30","Review workable","Review Camera by 9:35","Clean up Auto Punches (Due by 10:00)","Work Open Orders Report","Review Schedules (Due by 10:30)"],
+      Wednesday: ["Required in store by 9:00","DM Connect Call 8:30","ASM/Secondary Leader Call","GroupMe Posts by 9:30","Check RQ for any Open PO","Check X Inventory","Call Downs at 10:00, 12:00, 2:00, 4:30, 6:30","Review workable","Review Camera by 9:35","Clean up Auto Punches (Due by 10:00)"],
+      Thursday: ["Required in store by 9:30","DM Connect Call 8:30","BluFox Cross Functional Call 9:00","GroupMe Posts by 9:30","Review workable","Review Camera by 9:35","Clean up Auto Punches (Due by 10:00)","Call Downs at 10:00, 12:00, 2:00, 4:30, 6:30"],
+      Friday: ["Required in store by 9:00","DM Connect Call 8:30","RSM Huddle Call","GroupMe Posts by 9:30","Check RQ for any Open PO","Check X Inventory","Review workable","Review Camera by 9:35","Clean up Auto Punches (Due by 10:00)","Call Downs at 12:00, 2:00, 4:30, 6:30"],
+      Saturday: ["Required in store by 9:30","DM Connect Call 8:30","GroupMe Posts by 9:30","Review workable","Review Camera by 9:35","Clean up Auto Punches (Due by 10:00)","Call Downs at 10:00, 12:00, 2:00, 4:30, 6:30"]
+    };
+
+    const container = document.getElementById("todo-container");
+
+    function createCheckbox(day, person, task, index) {
+      const taskItem = document.createElement("div");
+      taskItem.className = "task-item";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.id = `${day}-${person}-${index}`;
+
+      const ref = db.ref(`tasks/${day}/${person}/${index}`);
+
+      // Sync with database
+      ref.on("value", snapshot => {
+        checkbox.checked = snapshot.val() === true;
+      });
+
+      checkbox.addEventListener("change", () => {
+        ref.set(checkbox.checked);
+      });
+
+      const label = document.createElement("label");
+      label.textContent = task;
+      label.setAttribute("for", checkbox.id);
+
+      taskItem.appendChild(checkbox);
+      taskItem.appendChild(label);
+
+      return taskItem;
+    }
+
+    for (const [day, taskList] of Object.entries(tasks)) {
+      const section = document.createElement("div");
+      section.className = "day-section";
+
+      const header = document.createElement("h2");
+      header.textContent = day;
+      section.appendChild(header);
+
+      people.forEach(person => {
+        const personSection = document.createElement("div");
+        personSection.className = "person-section";
+
+        const subHeader = document.createElement("h3");
+        subHeader.textContent = person;
+        personSection.appendChild(subHeader);
+
+        taskList.forEach((task, index) => {
+          const taskItem = createCheckbox(day, person, task, index);
+          personSection.appendChild(taskItem);
+        });
+
+        section.appendChild(personSection);
+      });
+
+      container.appendChild(section);
+    }
+  </script>
+</body>
+</html>
